@@ -921,7 +921,11 @@ func hsScan(db hsDatabase, data []byte, flags ScanFlag, scratch hsScratch, onEve
 		return HsError(C.HS_INVALID)
 	}
 
-	ctxt := &hsMatchEventContext{onEvent, context}
+	ctxt := new(hsMatchEventContext)
+	ctxt.context = context
+	ctxt.handler = onEvent
+
+	//ctxt := &hsMatchEventContext{onEvent, context}
 	data_hdr := (*reflect.SliceHeader)(unsafe.Pointer(&data))
 
 	ret := C.hs_scan_cgo(db, (*C.char)(unsafe.Pointer(data_hdr.Data)), C.uint(data_hdr.Len),
