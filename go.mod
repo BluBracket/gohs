@@ -1,4 +1,4 @@
-module github.com/flier/gohs
+module github.com/vladimir-buzuev/gohs
 
 require (
 	github.com/google/gopacket v1.1.14
