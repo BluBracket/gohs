@@ -3,6 +3,7 @@ package hyperscan
 import (
 	"errors"
 	"fmt"
+	"github.com/mattn/go-pointer"
 	"reflect"
 	"runtime"
 	"sort"
@@ -907,7 +908,9 @@ type hsMatchEventContext struct {
 
 //export hsMatchEventCallback
 func hsMatchEventCallback(id C.uint, from, to C.ulonglong, flags C.uint, data unsafe.Pointer) C.int {
-	ctxt := (*hsMatchEventContext)(data)
+
+	ctxt := pointer.Restore(data).(*hsMatchEventContext)
+	//ctxt := (*hsMatchEventContext)(data)
 
 	if err := ctxt.handler(uint(id), uint64(from), uint64(to), uint(flags), ctxt.context); err != nil {
 		return -1
@@ -916,26 +919,29 @@ func hsMatchEventCallback(id C.uint, from, to C.ulonglong, flags C.uint, data un
 	return 0
 }
 
-func newMatchEventContext() *hsMatchEventContext {
-	return new(hsMatchEventContext)
-}
-
 func hsScan(db hsDatabase, data []byte, flags ScanFlag, scratch hsScratch, onEvent hsMatchEventHandler, context interface{}) error {
 	if data == nil {
 		return HsError(C.HS_INVALID)
 	}
 
-	ctxt := newMatchEventContext()
-	ctxt.context = context
-	ctxt.handler = onEvent
+	ctxt := &hsMatchEventContext{onEvent, context}
+	ctxtPointer := pointer.Save(ctxt)
 
 	data_hdr := (*reflect.SliceHeader)(unsafe.Pointer(&data))
 
-	ret := C.hs_scan_cgo(db, (*C.char)(unsafe.Pointer(data_hdr.Data)), C.uint(data_hdr.Len),
-		C.uint(flags), scratch, C.uintptr_t(uintptr(unsafe.Pointer(ctxt))))
+	d := C.CBytes(data)
+
+	ret := C.hs_scan_cgo(db, (*C.char)(d), C.uint(data_hdr.Len),
+		C.uint(flags), scratch, C.uintptr_t(uintptr(ctxtPointer)))
+	//ret := C.hs_scan_cgo(db, (*C.char)(unsafe.Pointer(data_hdr.Data)), C.uint(data_hdr.Len),
+	//	C.uint(flags), scratch, C.uintptr_t(uintptr(ctxtPointer)))
+
+	C.free(d)
 
 	runtime.KeepAlive(data)
 	runtime.KeepAlive(ctxt)
+
+	pointer.Unref(ctxtPointer)
 
 	if ret != C.HS_SUCCESS {
 		return HsError(ret)
