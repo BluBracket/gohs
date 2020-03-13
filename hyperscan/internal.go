@@ -13,8 +13,15 @@ import (
 
 /*
 #cgo pkg-config: libhs
-#cgo linux LDFLAGS: -lm -lstdc++
+
+// note: libs specified in LDFLAGS will come before libs specified by pkg-config
+// as on Linux the order of libs are important we have to add the libhs itself
+// as the first lib in LDFLAGS
+// otherwise on c++ symbols will be found by the linker
+#cgo linux LDFLAGS: -lhs -lm -lstdc++
+
 #cgo darwin LDFLAGS: -lstdc++
+
 
 #include <stdlib.h>
 #include <limits.h>
