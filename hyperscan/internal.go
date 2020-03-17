@@ -12,7 +12,7 @@ import (
 )
 
 /*
-#cgo pkg-config: libhs
+#cgo !windows pkg-config: libhs
 
 // note: libs specified in LDFLAGS will come before libs specified by pkg-config
 // as on Linux the order of libs are important we have to add the libhs itself
@@ -21,6 +21,13 @@ import (
 #cgo linux LDFLAGS: -lhs -lm -lstdc++
 
 #cgo darwin LDFLAGS: -lstdc++
+
+// On Windows we need to build with dynamic hs.dll
+// We can't use a static lib as hyperscan can't be built with mingw, only with MSVS
+// The easiest way is just to put .h and .lib files into gohs itself
+// and provide hs.dll at runtime
+#cgo windows CFLAGS:  -I${SRCDIR}/../vendor/hyperscan/include/hs
+#cgo windows LDFLAGS: -L${SRCDIR}/../vendor/hyperscan/lib/win64 -lhs
 
 
 #include <stdlib.h>
