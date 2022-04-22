@@ -22,12 +22,9 @@ import (
 
 #cgo darwin LDFLAGS: -lstdc++
 
-// On Windows we need to build with dynamic hs.dll
-// We can't use a static lib as hyperscan can't be built with mingw, only with MSVS
-// The easiest way is just to put .h and .lib files into gohs itself
-// and provide hs.dll at runtime
+// On Windows the easiest way is just to put .h and .lib files into gohs itself
 #cgo windows CFLAGS:  -I${SRCDIR}/../native/hyperscan/include/hs
-#cgo windows LDFLAGS: -L${SRCDIR}/../native/hyperscan/lib/win64 -lhs
+#cgo windows LDFLAGS: -L${SRCDIR}/../native/hyperscan/lib/win64 -static -lhs -lstdc++
 
 
 #include <stdlib.h>
