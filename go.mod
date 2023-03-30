@@ -1,4 +1,4 @@
-module github.com/vladimir-buzuev/gohs
+module github.com/blubracket/gohs
 
 require (
 	github.com/google/gopacket v1.1.14
