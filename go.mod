@@ -1,4 +1,4 @@
-module github.com/blubracket/gohs
+module  github.com/flier/gohs
 
 require (
 	github.com/google/gopacket v1.1.14
